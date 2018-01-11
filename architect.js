@@ -507,6 +507,23 @@ function Architect(config) {
             if (provided && provided.hasOwnProperty("onDestroy"))
                 destructors.push(provided.onDestroy);
 
+            plugin.destroy = function() {
+                if (plugin.provides.length) {
+                    plugin.provides.forEach(function (name) {
+                        delete services[name];
+                        delete app.pluginToPackage[name];
+                    });
+                    delete app.packages[packageName];
+                }
+                if (provided && provided.hasOwnProperty("onDestroy")) {
+                    app.destructors.splice(app.destructors.indexOf(provided.onDestroy), 1);
+                    provided.onDestroy();
+                }
+                // delete from config
+                app.config.splice(app.config.indexOf(plugin), 1);
+                app.emit("destroyed", plugin);
+            };
+
             app.emit("plugin", plugin);
             
             if (recur) return (callnext = true);

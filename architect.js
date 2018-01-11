@@ -495,6 +495,7 @@ function Architect(config) {
                 }
                 services[name] = provided[name];
                 app.pluginToPackage[name] = {
+                    plugin: plugin,
                     path: plugin.packagePath,
                     package: packageName,
                     version: plugin.version,
@@ -509,6 +510,7 @@ function Architect(config) {
 
             plugin.destroy = function() {
                 if (plugin.provides.length) {
+                    // Assumes all consumers are done
                     plugin.provides.forEach(function (name) {
                         delete services[name];
                         delete app.pluginToPackage[name];

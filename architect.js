@@ -518,7 +518,7 @@ function Architect(config) {
                     delete app.packages[packageName];
                 }
                 if (provided && provided.hasOwnProperty("onDestroy")) {
-                    app.destructors.splice(app.destructors.indexOf(provided.onDestroy), 1);
+                    destructors.splice(destructors.indexOf(provided.onDestroy), 1);
                     provided.onDestroy();
                 }
                 // delete from config

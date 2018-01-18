@@ -34,11 +34,11 @@
         }
 
         //THis function is uses a preimported config file for use with a minifier.
-        function loadLoadedConfig(configJS, pluginJSON) {
-            return resolveLoadedConfigSync(configJS, pluginJSON);
+        function loadLoadedConfig(configJS, pluginJSON, pluginJS) {
+            return resolveLoadedConfigSync(configJS, pluginJSON, pluginJS);
         }
 
-        function resolveLoadedConfigSync(config, packages) {
+        function resolveLoadedConfigSync(config, packages, scripts) {
             config.forEach(function (plugin, index) {
                 //Objectify strings
                 if (typeof plugin === "string") {
@@ -46,29 +46,71 @@
                 }
                 //Process plugins
                 if (plugin.hasOwnProperty("packagePath") && !plugin.hasOwnProperty("setup")) {
-                    var defaults = resolveLoadedModuleSync(plugin.packagePath, packages);
-                    Object.keys(defaults).forEach(function(key){
-                        if(!plugin.hasOwnProperty(key)){
-                            plugin[key] = defaults[key];
-                        }
-                    })
+                    var defaults;
+                    try {
+                        defaults = resolveLoadedPackageSync(plugin.packagePath, packages)["plugin"];
+                        Object.keys(defaults).forEach(function (key) {
+                            if (!plugin.hasOwnProperty(key)) {
+                                plugin[key] = defaults[key];
+                            }
+                        });
+                        plugin.setup = resolveLoadedScriptSync(plugin.packagePath, scripts);
+                    } catch (err) {
+                        console.log(err);
+                    }
                 }
             });
             return config;
         }
-
-        function resolveLoadedModuleSync(modulePath, packages) {
-            var key = mod.split('/')[key.length - 1];
-            packages.forEach(function () {
-                if (packages.hasOwnProperty(key)) {
-                    return packages[key];
+        //Use only for importing loaded package.jsons
+        function resolveLoadedPackageSync(modulePath, packages) {
+            var mod = modulePath.split('/');
+            mod = mod[mod.length - 1];
+            var ret;
+            Object.keys(packages.plugins).forEach(function (key) {
+                if (key === mod) {
+                    ret = packages.plugins[mod].package;
+                    return;
                 }
             });
-            packages[sdk].forEach(function () {
-                if (packages[sdk].hasOwnProperty(key)) {
-                    return packages[sdk][key];
+            if (ret)
+                return ret;
+            else
+                Object.keys(packages.plugins.sdk).forEach(function (key) {
+                    if (key === mod) {
+                        ret = packages.plugins.sdk[mod].package;
+                        return;
+                    }
+                });
+            if (ret)
+                return ret;
+            else
+                throw new Error("Package " + mod + " Does Not Exsist!");
+        }
+        //Use for importing loaded plugin Scripts
+        function resolveLoadedScriptSync(modulePath, script) {
+            var mod = modulePath.split('/');
+            mod = mod[mod.length - 1];
+            var ret;
+            Object.keys(script.plugins).forEach(function (key) {
+                if (key === mod) {
+                    ret = script.plugins[mod][mod];
+                    return;
                 }
             });
+            if (ret)
+                return ret;
+            else
+                Object.keys(script.plugins.sdk).forEach(function (key) {
+                    if (key === mod) {
+                        ret = script.plugins.sdk[mod][mod];
+                        return;
+                    }
+                });
+            if (ret)
+                return ret;
+            else
+                throw new Error("Package " + mod + " Does Not Exsist!");
         }
 
         function resolveConfig(config, base, callback) {

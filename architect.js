@@ -35,11 +35,11 @@
         }
 
         //THis function is uses a preimported config file for use with a minifier.
-        function loadLoadedConfig(configJS, pluginJS, pluginJSON) {
-            return resolveLoadedConfigSync(configJS, pluginJSON, pluginJS);
+        function loadLoadedConfig(configJS, pluginJSON) {
+            return resolveLoadedConfigSync(configJS, pluginJSON);
         }
 
-        function resolveLoadedConfigSync(config, packages, scripts) {
+        function resolveLoadedConfigSync(config, packages) {
             config.forEach(function (plugin, index) {
                 //Objectify strings
                 if (typeof plugin === "string") {

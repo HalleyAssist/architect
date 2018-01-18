@@ -19,7 +19,6 @@
         var realpath = require('fs').realpath;
         var packagePathCache = {};
         var basePath;
-        var pathBase = require('path').basePath;
 
         exports.loadConfig = loadConfig;
         exports.loadLoadedConfig = loadLoadedConfig;
@@ -59,7 +58,7 @@
         }
 
         function resolveLoadedModuleSync(modulePath, packages) {
-            var key = pathBase(modulePath);
+            var key = mod.split('/')[key.length - 1];
             packages.forEach(function () {
                 if (packages.hasOwnProperty(key)) {
                     return packages[key];

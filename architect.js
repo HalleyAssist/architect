@@ -21,6 +21,7 @@ if (typeof module === "object") (function () {
     var basePath;
 
     exports.loadConfig = loadConfig;
+    exports.loadLoadedConfig = loadLoadedConfig;
     exports.resolveConfig = resolveConfig;
 
     // This is assumed to be used at startup and uses sync I/O as well as can
@@ -30,6 +31,14 @@ if (typeof module === "object") (function () {
       var base = dirname(configPath);
 
       return resolveConfig(config, base, callback);
+    }
+
+    //THis function is uses a preimported config file for use with a minifier.
+    function loadLoadedConfig(configPath, configJSON, callback) {
+          var config = configJSON;
+          var base = dirname(configPath);
+    
+          return resolveConfig(config, base, callback);
     }
 
     function resolveConfig(config, base, callback) {

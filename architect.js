@@ -85,7 +85,7 @@
             if (ret)
                 return ret;
             else
-                throw new Error("Package " + mod + " Does Not Exsist!");
+                throw new Error("Package " + mod + " Does Not Exist!");
         }
         //Use for importing loaded plugin Scripts
         function resolveLoadedScriptSync(modulePath, script) {

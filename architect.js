@@ -646,11 +646,9 @@
         }
 
         this.destroy = function () {
-            destructors.forEach(function (destroy) {
-                destroy();
-            });
-
-            destructors = [];
+            for(var i in app.pluginToPackage){
+                app.pluginToPackage[i].plugin.destroy()
+            }
         };
     }
     Architect.prototype = Object.create(EventEmitter.prototype, { constructor: { value: Architect } });

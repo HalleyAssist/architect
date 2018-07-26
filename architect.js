@@ -35,7 +35,7 @@
 
             //THis function is uses a preimported config file for use with a minifier.
             function loadLoadedConfig(configJS, pluginJSON, pluginJS) {
-                return resolveLoadedConfigSync(configJS, pluginJSON, pluginJS);
+                return resolveLoadedConfigSync(configJS.slice(0), pluginJSON, pluginJS);
             }
 
             function resolveLoadedConfigSync(config, packages, scripts) {
@@ -358,8 +358,8 @@
 
         // Otherwise use amd to load modules.
         else (function () {
-            exports.loadConfig = loadConfig;
-            exports.resolveConfig = resolveConfig;
+            self.loadConfig = loadConfig;
+            self.resolveConfig = resolveConfig;
 
             function loadConfig(path, callback) {
                 require([path], function (config) {
@@ -433,7 +433,8 @@
             });
 
             var resolved = {
-                hub: true
+                hub: true,
+                this: true
             };
             var changed = true;
             var sorted = [];
@@ -531,7 +532,8 @@
                 var imports = {};
                 if (plugin.consumes) {
                     plugin.consumes.forEach(function (name) {
-                        imports[name] = services[name];
+                        if(name == "this") imports["this"] = self
+                        else imports[name] = services[name];
                     });
                 }
 
@@ -617,10 +619,10 @@
             // Give createApp some time to subscribe to our "ready" event
             (typeof process === "object" ? process.nextTick : setTimeout)(startPlugins);
 
-            self.loadAdditionalPlugins = function (additionalConfig, callback) {
+            this.loadAdditionalPlugins = function (additionalConfig, callback) {
                 isAdditionalMode = true;
 
-                this.resolveConfig(additionalConfig, function (err, additionalConfig) {
+                self.resolveConfig(additionalConfig, function (err, additionalConfig) {
                     if (err) return callback(err);
 
                     app.once(ready ? "ready-additional" : "ready", function (app) {
@@ -629,6 +631,7 @@
 
                     // Check the config - hopefully this works
                     var _sortedPlugins = checkConfig(additionalConfig, function (name) {
+                        if(name == "this") return true
                         return services[name];
                     });
 
@@ -645,7 +648,7 @@
                 });
             }
 
-            self.destroy = function () {
+            this.destroy = function () {
                 for(var i in app.pluginToPackage){
                     app.pluginToPackage[i].plugin.destroy()
                 }
@@ -654,6 +657,7 @@
         Architect.prototype = Object.create(EventEmitter.prototype, { constructor: { value: Architect } });
 
         Architect.prototype.getService = function (name) {
+            if(name == "this") return self
             if (!this.services[name]) {
                 throw new Error("Service '" + name + "' not found in architect app!");
             }

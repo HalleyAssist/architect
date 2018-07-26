@@ -398,7 +398,9 @@
             }
         }());
 
-        self.createApp = createApp;
+        self.createApp = function(config, callback){
+            return createApp(config.slice(0), callback)
+        }
         self.Architect = Architect;
 
         // Check a plugin config list for bad dependencies and throw on error
@@ -600,13 +602,17 @@
                             });
                             delete app.packages[packageName];
                         }
-                        if (provided && provided.hasOwnProperty("onDestroy")) {
-                            destructors.splice(destructors.indexOf(provided.onDestroy), 1);
-                            provided.onDestroy();
+
+                        try {
+                            if (provided && provided.hasOwnProperty("onDestroy")) {
+                                destructors.splice(destructors.indexOf(provided.onDestroy), 1);
+                                provided.onDestroy();
+                            }
+                        }finally{
+                            // delete from config
+                            app.config.splice(app.config.indexOf(plugin), 1);
+                            app.emit("destroyed", plugin);
                         }
-                        // delete from config
-                        app.config.splice(app.config.indexOf(plugin), 1);
-                        app.emit("destroyed", plugin);
                     };
 
                     app.emit("plugin", plugin);

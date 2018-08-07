@@ -541,11 +541,18 @@
 
                 var m = /^plugins\/([^\/]+)|\/plugins\/[^\/]+\/([^\/]+)/.exec(plugin.packagePath);
                 var packageName = m && (m[1] || m[2]);
+                var oldPackage = null
                 if (!app.packages[packageName]) app.packages[packageName] = [];
+                else oldPackage = app.packages[packageName]
 
                 if (DEBUG) {
                     recur++;
-                    plugin.setup(plugin, imports, register);
+                    try {
+                        plugin.setup(plugin, imports, register);
+                    } finally {
+                        if(oldPackage) app.packages[packageName] = oldPackage
+                        else delete app.packages[packageName]
+                    }
 
                     while (callnext && recur <= 1) {
                         callnext = false;
@@ -556,7 +563,12 @@
                 else {
                     try {
                         recur++;
-                        plugin.setup(plugin, imports, register);
+                        try {
+                            plugin.setup(plugin, imports, register);
+                        } finally {
+                            if(oldPackage) app.packages[packageName] = oldPackage
+                            else delete app.packages[packageName]
+                        }
                     } catch (e) {
                         e.plugin = plugin;
                         app.emit("error", e);

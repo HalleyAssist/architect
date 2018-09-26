@@ -598,7 +598,7 @@
                             version: plugin.version,
                             isAdditionalMode: isAdditionalMode
                         };
-                        app.packages[packageName].push(name);
+                        if(app.packages[packageName]) app.packages[packageName].push(name);
 
                         app.emit("service", name, services[name], plugin);
                     });

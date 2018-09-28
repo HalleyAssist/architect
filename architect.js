@@ -538,14 +538,17 @@
                         else imports[name] = services[name];
                     });
                 }
-
-                var m = /^plugins\/([^\/]+)|\/plugins\/[^\/]+\/([^\/]+)/.exec(plugin.packagePath);
-                var packageName = m && (m[1] || m[2]);
+                
+                var packageName = plugin.packageName
+                if(!packageName){
+                    var m = /^plugins\/([^\/]+)|\/plugins\/[^\/]+\/([^\/]+)/.exec(plugin.packagePath);
+                    packageName = m && (m[1] || m[2]);
+                }
                 var oldPackage = null
                 if (!app.packages[packageName]) app.packages[packageName] = [];
                 else oldPackage = app.packages[packageName]
 
-                if (DEBUG) {
+                try {
                     recur++;
                     try {
                         plugin.setup(plugin, imports, register);
@@ -553,36 +556,20 @@
                         if(oldPackage) app.packages[packageName] = oldPackage
                         else delete app.packages[packageName]
                     }
-
+                } catch (e) {
+                    e.plugin = plugin;
+                    app.emit("error", e);
+                    throw e;
+                } finally {
                     while (callnext && recur <= 1) {
                         callnext = false;
                         startPlugins(additional);
                     }
                     recur--;
                 }
-                else {
-                    try {
-                        recur++;
-                        try {
-                            plugin.setup(plugin, imports, register);
-                        } finally {
-                            if(oldPackage) app.packages[packageName] = oldPackage
-                            else delete app.packages[packageName]
-                        }
-                    } catch (e) {
-                        e.plugin = plugin;
-                        app.emit("error", e);
-                        throw e;
-                    } finally {
-                        while (callnext && recur <= 1) {
-                            callnext = false;
-                            startPlugins(additional);
-                        }
-                        recur--;
-                    }
-                }
 
                 function register(err, provided) {
+
                     if (err) { return app.emit("error", err); }
                     plugin.provides.forEach(function (name) {
                         if (!provided.hasOwnProperty(name)) {
@@ -598,7 +585,7 @@
                             version: plugin.version,
                             isAdditionalMode: isAdditionalMode
                         };
-                        if(app.packages[packageName]) app.packages[packageName].push(name);
+                        app.packages[packageName].push(name);
 
                         app.emit("service", name, services[name], plugin);
                     });

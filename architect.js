@@ -104,12 +104,8 @@ function A() {
             throw new Error("Package " + mod + " Does Not Exsist!");
     }
 
-    function resolveConfig(config, base) {
-        if(!base) base = basePath
-        return resolveConfig(config, base);
-    }
-
     async function resolveConfig(config, base) {
+        if(!base) base = basePath
         async function resolveNext(i) {
             if (i >= config.length) {
                 return config
@@ -147,14 +143,9 @@ function A() {
         let packagePath
         try {
             packagePath = await resolvePackage(base, modulePath + "/package.json")
-        } catch(ex){
-            try {
-                metadata = packagePath && require(packagePath).plugin || {};
-            } catch (e) {
-                throw e
-            }
-        }
-        var metadata = {};
+        } catch { }
+        
+        var metadata = packagePath && require(packagePath).plugin || {};
 
         if (packagePath) {
             modulePath = dirname(packagePath)
@@ -163,7 +154,7 @@ function A() {
             modulePath = await resolvePackage(base, modulePath);
         }
         var mod = require(modulePath);
-
+        
         metadata.provides = metadata.provides || mod.provides || [];
         metadata.consumes = metadata.consumes || mod.consumes || [];
         metadata.packagePath = modulePath;
@@ -355,10 +346,11 @@ function A() {
 
             var packageName = plugin.packageName
             if (!packageName) {
-                var m = /^plugins\/([^\/]+)|\/plugins\/[^\/]+\/([^\/]+)/.exec(plugin.packagePath);
-                packageName = m && (m[1] || m[2]);
+                packageName = plugin.packageName = "__"+Object.keys(app.packages).length
             }
             var oldPackage = null
+
+
             if (!app.packages[packageName]) app.packages[packageName] = [];
             else oldPackage = app.packages[packageName]
 
@@ -366,9 +358,10 @@ function A() {
                 recur++;
                 try {
                     await plugin.setup(plugin, imports, register);
-                } finally {
+                } catch(ex) {
                     if (oldPackage) app.packages[packageName] = oldPackage
                     else delete app.packages[packageName]
+                    throw ex
                 }
             } catch (e) {
                 e.plugin = plugin;
@@ -440,7 +433,7 @@ function A() {
         this.loadAdditionalPlugins = async function (additionalConfig) {
             isAdditionalMode = true;
 
-            const additionalConfig = await self.resolveConfig(additionalConfig)
+            additionalConfig = await self.resolveConfig(additionalConfig)
             const deferred = Q.defer()
             app.once(ready ? "ready-additional" : "ready", function (app) {
                 deferred.resolve(app)

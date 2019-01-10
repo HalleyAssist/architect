@@ -143,7 +143,7 @@ function A() {
         let packagePath
         try {
             packagePath = await resolvePackage(base, modulePath + "/package.json")
-        } catch { }
+        } catch (ex) { }
         
         var metadata = packagePath && require(packagePath).plugin || {};
 

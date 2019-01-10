@@ -22,7 +22,9 @@
         "type": "git",
         "url": "http://github.com/c9/architect.git"
     },
-    "dependencies": {},
+    "dependencies": {
+        "q": "^1.5.1"
+    },
     "devDependencies": {},
     "optionalDependencies": {},
     "licenses": [

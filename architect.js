@@ -1,10 +1,10 @@
 
 const EventEmitter = require('events').EventEmitter,
-      dirname = require('path').dirname,
-      resolve = require('path').resolve,
-      fs = require('fs'),
-      fsPromises = fs.promises,
-      Q = require('q')
+    dirname = require('path').dirname,
+    resolve = require('path').resolve,
+    fs = require('fs'),
+    fsPromises = fs.promises,
+    Q = require('q')
 
 const DEBUG = !!process.env.ARCHITECT_DEBUG
 
@@ -105,7 +105,7 @@ function A() {
     }
 
     async function resolveConfig(config, base) {
-        if(!base) base = basePath
+        if (!base) base = basePath
         async function resolveNext(i) {
             if (i >= config.length) {
                 return config
@@ -126,7 +126,7 @@ function A() {
                     }
                 });
                 plugin.packagePath = defaults.packagePath;
-                
+
                 plugin.setup = require(plugin.packagePath);
                 return await resolveNext(++i);
             }
@@ -144,7 +144,7 @@ function A() {
         try {
             packagePath = await resolvePackage(base, modulePath + "/package.json")
         } catch (ex) { }
-        
+
         var metadata = packagePath && require(packagePath).plugin || {};
 
         if (packagePath) {
@@ -154,7 +154,7 @@ function A() {
             modulePath = await resolvePackage(base, modulePath);
         }
         var mod = require(modulePath);
-        
+
         metadata.provides = metadata.provides || mod.provides || [];
         metadata.consumes = metadata.consumes || mod.consumes || [];
         metadata.packagePath = modulePath;
@@ -179,7 +179,7 @@ function A() {
             await tryNext(base);
         }
 
-        async function done(newPath){
+        async function done(newPath) {
             newPath = await fsPromises.realpath(newPath)
 
             cache[packagePath] = newPath;
@@ -194,18 +194,18 @@ function A() {
             }
 
             var newPath = resolve(base, "node_modules", packagePath);
-            if(await fsPromises.access(newPath, fs.constants.R_OK)){
+            if (await fsPromises.access(newPath, fs.constants.R_OK)) {
                 return await done(newPath)
-            }else{
+            } else {
                 var nextBase = resolve(base, '..');
                 if (nextBase === base)
                     await tryNext("/"); // for windows
                 else
-                await tryNext(nextBase);
+                    await tryNext(nextBase);
             }
         }
     }
-    
+
     self.Architect = Architect;
 
     // Check a plugin config list for bad dependencies and throw on error
@@ -346,7 +346,7 @@ function A() {
 
             var packageName = plugin.packageName
             if (!packageName) {
-                packageName = plugin.packageName = "__"+Object.keys(app.packages).length
+                packageName = plugin.packageName = "__" + Object.keys(app.packages).length
             }
             var oldPackage = null
 
@@ -358,7 +358,7 @@ function A() {
                 recur++;
                 try {
                     await plugin.setup(plugin, imports, register);
-                } catch(ex) {
+                } catch (ex) {
                     if (oldPackage) app.packages[packageName] = oldPackage
                     else delete app.packages[packageName]
                     throw ex
@@ -409,6 +409,7 @@ function A() {
                         delete app.packages[packageName];
                     }
 
+                    app.emit("destroying", plugin);
                     try {
                         if (provided && provided.hasOwnProperty("onDestroy")) {
                             destructors.splice(destructors.indexOf(provided.onDestroy), 1);
@@ -438,7 +439,7 @@ function A() {
             app.once(ready ? "ready-additional" : "ready", function (app) {
                 deferred.resolve(app)
             }); // What about error state?
-            
+
             // Check the config - hopefully this works
             var _sortedPlugins = checkConfig(additionalConfig, function (name) {
                 if (name == "this") return true
@@ -458,14 +459,14 @@ function A() {
 
             return await deferred.promise
         }
-        
+
 
         this.destroy = async function () {
-            function canDestroy(plugin){
+            function canDestroy(plugin) {
                 for (var f in app.pluginToPackage) {
                     const pluginToPackage = app.pluginToPackage[f].plugin
-                    for(var provides in plugin.provides){
-                        if(pluginToPackage.consumes.includes(plugin.provides[provides])){
+                    for (var provides in plugin.provides) {
+                        if (pluginToPackage.consumes.includes(plugin.provides[provides])) {
                             return false
                         }
                     }
@@ -478,14 +479,14 @@ function A() {
                 destroyed = 0
                 for (var i in app.pluginToPackage) {
                     const plugin = app.pluginToPackage[i].plugin
-                    if(canDestroy(plugin)){
+                    if (canDestroy(plugin)) {
                         destroyed++
                         await plugin.destroy()
                     }
                 }
-            } while(destroyed)
+            } while (destroyed)
 
-            if(Object.keys(app.pluginToPackage).length){
+            if (Object.keys(app.pluginToPackage).length) {
                 throw new Error("Unable to destroy all plugins")
             }
         }

@@ -24,7 +24,7 @@ test("resolve config resolved", async assert => {
 
     assert.deepEqual(resolvedConfig, config);
 });
-
+/*
 test("resolve config from basepath + node_modules", async(assert) => {
     const fakePlugin = `
         module.exports = {
@@ -36,9 +36,9 @@ test("resolve config from basepath + node_modules", async(assert) => {
         }
     `;
 
-    let packagePath = "_fake/plugin_" + Date.now();
+    let packagePath = "_fake/plugin_" + Date.now()+ ".js";
     let packageDir = "/tmp/_architect_test_fixtures/node_modules";
-    let fullPath = packageDir + "/" + packagePath + ".js";
+    let fullPath = packageDir + "/" + packagePath ;
 
     let config = [
         packagePath,
@@ -89,6 +89,7 @@ test("resolve config from basepath + node_modules, async", async(assert) => {
     await unlink(fullPath);
     assert.end();
 });
+*/
 
 test("it should start an architect app (classic)", async(assert) => {
     const fakeConfig = [{

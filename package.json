@@ -28,7 +28,8 @@
     "dependencies": {},
     "devDependencies": {
         "mkdirp": "^0.5.1",
-        "tape": "^4.8.0"
+        "tape": "^4.8.0",
+        "q": "^1.5.1"
     },
     "optionalDependencies": {},
     "licenses": [

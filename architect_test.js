@@ -191,6 +191,45 @@ test("it should destroy imports", async(assert) => {
     assert.ok(barDestroyed, "barDestroyed");
 });
 
+test("destroy should wait on async", async(assert) => {
+    let barDestroyed = false;
+
+    const fakeConfig = [{
+            packagePath: "foo/plugin",
+            setup: async function(config, imports, register) {
+                assert.ok(imports["bar.plugin"].iamBar);
+                await register();
+            },
+            provides: [],
+            consumes: ["bar.plugin"]
+        },
+        {
+            packagePath: "bar/plugin",
+            setup: async function(config, imports, register) {
+                await register(null, {
+                    onDestroy: async function() {
+                        await Q.delay(100)
+                        barDestroyed = true;
+                    },
+                    "bar.plugin": {
+                        iamBar: true
+                    }
+                });
+            },
+            provides: ["bar.plugin"],
+            consumes: []
+        }
+    ];
+
+    var architect = new Architect()
+
+    
+    var instance = new architect.Instance(fakeConfig)
+    await instance.startPlugins()
+    await instance.destroy();
+    assert.ok(barDestroyed, "barDestroyed");
+});
+
 
 test("it allow loading additionalPlugins", async(assert) => {
     const fakeConfig = [{

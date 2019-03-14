@@ -18,12 +18,18 @@
         }
     ],
     "main": "architect.js",
+    "scripts": {
+        "test": "tape **/*_test.js"
+    },
     "repository": {
         "type": "git",
         "url": "http://github.com/c9/architect.git"
     },
     "dependencies": {},
-    "devDependencies": {},
+    "devDependencies": {
+        "mkdirp": "^0.5.1",
+        "tape": "^4.8.0"
+    },
     "optionalDependencies": {},
     "licenses": [
         {

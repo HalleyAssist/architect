@@ -93,16 +93,16 @@ test("resolve config from basepath + node_modules, async", async(assert) => {
 test("it should start an architect app (classic)", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {
-                register(null, {
+            setup: async function(config, imports, register) {
+                await register(null, {
                     "bar.plugin": {
                         iamBar: true
                     }
@@ -123,18 +123,18 @@ test("it should provide imports", async(assert) => {
 
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
+            setup: async function(config, imports, register) {
                 assert.ok(imports["bar.plugin"].iamBar);
                 iamBar = true;
-                register();
+                await register();
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {
-                register(null, {
+            setup: async function(config, imports, register) {
+                await register(null, {
                     "bar.plugin": {
                         iamBar: true
                     }
@@ -152,22 +152,22 @@ test("it should provide imports", async(assert) => {
     assert.ok(iamBar, "iamBar was imported");
 });
 
-test("it should provide imports", async(assert) => {
+test("it should destroy imports", async(assert) => {
     let barDestroyed = false;
 
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
+            setup: async function(config, imports, register) {
                 assert.ok(imports["bar.plugin"].iamBar);
-                register();
+                await register();
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {
-                register(null, {
+            setup: async function(config, imports, register) {
+                await register(null, {
                     onDestroy: function() {
                         barDestroyed = true;
                     },
@@ -186,7 +186,7 @@ test("it should provide imports", async(assert) => {
     
     var instance = new architect.Instance(fakeConfig)
     await instance.startPlugins()
-    await app.destroy();
+    await instance.destroy();
     assert.ok(barDestroyed, "barDestroyed");
 });
 
@@ -194,17 +194,17 @@ test("it should provide imports", async(assert) => {
 test("it allow loading additionalPlugins", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
+            setup: async function(config, imports, register) {
                 assert.ok(imports["bar.plugin"].iamBar);
-                register();
+                await register();
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {
-                register(null, {
+            setup: async function(config, imports, register) {
+                await register(null, {
                     "bar.plugin": {
                         iamBar: true
                     }
@@ -225,10 +225,10 @@ test("it allow loading additionalPlugins", async(assert) => {
 
             const fakeAdditional = [{
                 packagePath: "biz/plugin",
-                setup: function(config, imports, register) {
+                setup: async function(config, imports, register) {
                     assert.ok(imports["bar.plugin"].iamBar);
                     loadedBar = true;
-                    register();
+                    await register();
                 },
                 provides: [],
                 consumes: ["bar.plugin"]
@@ -250,13 +250,13 @@ test("it allow loading additionalPlugins", async(assert) => {
 test("it detects cyclic dependencies (classic)", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {},
+            setup: async function(config, imports, register) {},
             provides: ["foo.plugin"],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {},
+            setup: async function(config, imports, register) {},
             provides: ["bar.plugin"],
             consumes: ["foo.plugin"]
         }
@@ -276,19 +276,19 @@ test("it detects cyclic dependencies (classic)", async(assert) => {
     assert.ok(err.message.includes('Could not resolve dependencies'));
 });
 
-/*test("it checks the provides", async(assert) => {
+test("it checks the provides", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {
-                register(null, {});
+            setup: async function(config, imports, register) {
+                await register(null, {});
             },
             provides: ["bar.plugin"],
             consumes: []
@@ -305,19 +305,19 @@ test("it detects cyclic dependencies (classic)", async(assert) => {
     }
 
     assert.ok(err, 'expected error')
-    assert.ok(/Plugin failed to provide bar.plugin service/.test(err.message));
-});*/
+    if(err) assert.ok(/Plugin failed to provide bar.plugin service/.test(err.message));
+});
 
 test("it checks all dependencies", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {},
+            setup: async function(config, imports, register) {},
             provides: ["foo.plugin"],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: function(config, imports, register) {},
+            setup: async function(config, imports, register) {},
             provides: [],
             consumes: []
         }
@@ -340,7 +340,7 @@ test("it checks all dependencies", async(assert) => {
 test("it validates config (consumes must be present)", async(assert) => {
     const fakeConfig = [{
         packagePath: "foo/plugin",
-        setup: function(config, imports, register) {},
+        setup: async function(config, imports, register) {},
         provides: [],
     }];
 
@@ -360,7 +360,7 @@ test("it validates config (consumes must be present)", async(assert) => {
 test("it validates config (provides must be present)", async(assert) => {
     const fakeConfig = [{
         packagePath: "foo/plugin",
-        setup: function(config, imports, register) {},
+        setup: async function(config, imports, register) {},
     }];
 
 
@@ -399,8 +399,8 @@ test("it validates config (setup must be present)", async(assert) => {
 test("it should start an architect app when plugin _returns_ value", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
@@ -427,8 +427,8 @@ test("it should start an architect app when plugin _returns_ value", async(asser
 test("it should start an architect app when plugin awaits", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
@@ -461,8 +461,8 @@ test("it should start an architect app when plugin awaits", async(assert) => {
 test("it should start an architect app when plugin returns promise", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
@@ -491,8 +491,8 @@ test("it should start an architect app when plugin returns promise", async(asser
 test("it should start an architect app when plugin rejects promise", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
@@ -525,8 +525,8 @@ test("it should start an architect app when plugin rejects promise", async(asser
 test("it should start an architect app when plugin has an error", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
@@ -558,20 +558,20 @@ test("it should start an architect app when plugin has an error", async(assert) 
 test("it should start an architect app with await", async(assert) => {
     const fakeConfig = [{
             packagePath: "foo/plugin",
-            setup: function(config, imports, register) {
-                register(null);
+            setup: async function(config, imports, register) {
+                await register(null);
             },
             provides: [],
             consumes: ["bar.plugin"]
         },
         {
             packagePath: "bar/plugin",
-            setup: async(config, imports) => {
-                return {
+            setup: async(config, imports, register) => {
+                await register(null, {
                     "bar.plugin": {
                         isBar: true
                     }
-                };
+                });
             },
             provides: ["bar.plugin"],
             consumes: []
@@ -581,11 +581,7 @@ test("it should start an architect app with await", async(assert) => {
     var architect = new Architect()
     const app = new architect.Instance(fakeConfig);
 
-    app.on("ready", () => assert.end());
-
     await app.startPlugins()
-
-    assert.ok(app.ready);
 
     let service = app.getService("bar.plugin");
 

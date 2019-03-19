@@ -437,10 +437,6 @@ function A() {
             isAdditionalMode = true;
 
             additionalConfig = await self.resolveConfig(additionalConfig)
-            const deferred = Q.defer()
-            app.once(ready ? "ready-additional" : "ready", function (app) {
-                deferred.resolve(app)
-            }); // What about error state?
 
             // Check the config - hopefully this works
             var _sortedPlugins = checkConfig(additionalConfig, function (name) {
@@ -448,16 +444,25 @@ function A() {
                 return services[name];
             });
 
-            if (ready) {
-                sortedPlugins = _sortedPlugins;
-                // Start Loading additional plugins
-                await startPlugins(true);
+            //Must be ready to continue
+            if(!ready){
+                const readyWait = Q.defer()
+                app.once('ready', function(){
+                    readyWait.resolve()
+                })
+                await readyWait.promise
             }
-            else {
-                _sortedPlugins.forEach(function (item) {
-                    sortedPlugins.push(item);
-                });
-            }
+
+            // TODO: What about error state?
+            const deferred = Q.defer()
+            app.once("ready-additional", function (app) {
+                deferred.resolve(app)
+            }); 
+
+            // Start Loading additional plugins
+            sortedPlugins = _sortedPlugins;
+            await startPlugins(true);
+            _sortedPlugins = null
 
             return await deferred.promise
         }

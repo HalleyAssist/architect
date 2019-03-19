@@ -356,6 +356,7 @@ function A() {
                 app.emit("error", e);
                 throw e;
             }
+            app.packages[packageName] = [];
 
             try {
                 recur++;

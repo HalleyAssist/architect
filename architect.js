@@ -331,6 +331,8 @@ function A() {
         var recur = 0, callnext, ready;
         async function startPlugins(additional) {
             var plugin = sortedPlugins.shift();
+
+            //Ready when there are no more plugin
             if (!plugin) {
                 ready = true;
                 return app.emit(additional ? "ready-additional" : "ready", app);
@@ -348,19 +350,19 @@ function A() {
             if (!packageName) {
                 packageName = plugin.packageName = "__" + Object.keys(app.packages).length
             }
-            var oldPackage = null
 
-
-            if (!app.packages[packageName]) app.packages[packageName] = [];
-            else oldPackage = app.packages[packageName]
+            if(app.packages[packageName]){
+                const e = new Error("Unable to start "+packageName+" as already started")
+                app.emit("error", e);
+                throw e;
+            }
 
             try {
                 recur++;
                 try {
                     await plugin.setup(plugin, imports, register);
                 } catch (ex) {
-                    if (oldPackage) app.packages[packageName] = oldPackage
-                    else delete app.packages[packageName]
+                    delete app.packages[packageName]
                     throw ex
                 }
             } catch (e) {

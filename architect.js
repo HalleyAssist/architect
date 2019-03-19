@@ -127,6 +127,7 @@ function A() {
                 });
                 plugin.packagePath = defaults.packagePath;
 
+                plugin.resolvedPath = plugin.packagePath
                 plugin.setup = require(plugin.packagePath);
                 return await resolveNext(++i);
             }
@@ -330,7 +331,7 @@ function A() {
         var destructors = [];
         var recur = 0, callnext, ready;
         async function startPlugins(additional) {
-            var plugin = sortedPlugins.shift();
+            let plugin = sortedPlugins.shift();
 
             //Ready when there are no more plugin
             if (!plugin) {
@@ -346,9 +347,13 @@ function A() {
                 });
             }
 
-            var packageName = plugin.packageName
+            let packageName = plugin.packageName
             if (!packageName) {
-                packageName = plugin.packageName = "__" + Object.keys(app.packages).length
+                if(plugin.resolvedPath){
+                    packageName = plugin.packageName = plugin.resolvedPath
+                } else {
+                    packageName = plugin.packageName = "__" + Object.keys(app.packages).length
+                }
             }
 
             if(app.packages[packageName]){

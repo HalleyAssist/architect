@@ -316,7 +316,6 @@ function A() {
         app.packages = {};
         app.pluginToPackage = {};
 
-        var isAdditionalMode;
         var services = app.services = {
             hub: {
                 on: function (name, callback) {
@@ -349,8 +348,8 @@ function A() {
 
             let packageName = plugin.packageName
             if (!packageName) {
-                if(plugin.resolvedPath){
-                    packageName = plugin.packageName = plugin.resolvedPath
+                if(plugin.packagePath){
+                    packageName = plugin.packageName = plugin.packagePath
                 } else {
                     packageName = plugin.packageName = "__" + Object.keys(app.packages).length
                 }
@@ -397,8 +396,7 @@ function A() {
                         plugin: plugin,
                         path: plugin.packagePath,
                         package: packageName,
-                        version: plugin.version,
-                        isAdditionalMode: isAdditionalMode
+                        version: plugin.version
                     };
                     app.packages[packageName].push(name);
 
@@ -440,8 +438,6 @@ function A() {
         this.startPlugins = startPlugins
 
         this.loadAdditionalPlugins = async function (additionalConfig) {
-            isAdditionalMode = true;
-
             additionalConfig = await self.resolveConfig(additionalConfig)
 
             // Check the config - hopefully this works
